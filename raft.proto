@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "edu.sjsu.cs249.raft";
+
+service RaftServer {
+    rpc RequestVote(RequestVoteRequest) returns (RequestVoteResponse);
+    rpc AppendEntries(AppendEntriesRequest) returns (AppendEntriesResponse);
+    // these next two RPCs are sent from client to the leader
+    rpc ClientAppend(ClientAppendRequest) returns (ClientAppendResponse);
+    rpc ClientRequestIndex(ClientRequestIndexRequest) returns (ClientRequestIndexResponse);
+}
+
+package raft;
+
+message RequestVoteRequest {
+    uint64 term = 1;
+    uint32 cadidateId = 2;
+    uint64 lastLogIndex = 3;
+    uint64 lastLogTerm = 4;
+}
+
+message RequestVoteResponse {
+    uint64 term = 1;
+    bool voteGranted = 2;
+}
+
+message AppendEntriesRequest {
+    uint64 term = 1;
+    uint32 leaderId = 2;
+    uint64 prevLogIndex = 3;
+    uint64 prevLogTerm = 4;
+    Entry entry = 5;
+    uint64 leaderCommit = 6;
+}
+
+message AppendEntriesResponse {
+    uint64 term = 1;
+    bool success = 2;
+}
+
+message Entry {
+    uint64 term = 1;
+    uint64 index = 2;
+    string decree = 3;
+}
+
+message ClientAppendRequest {
+    string decree = 1;
+}
+
+message ClientAppendResponse {
+    uint32 rc = 1; // 0 means success, 1 means not the leader
+    uint64 leader = 2;
+    uint64 index = 3;
+}
+
+message ClientRequestIndexRequest {
+    uint64 index = 1;
+}
+
+message ClientRequestIndexResponse {
+    uint32 rc = 1; // 0 means success, 1 means not the leader
+    uint64 leader = 2;
+    // this will be the requested index or the last committed
+    // index if the requested index is not found
+    uint64 index = 3;
+    string decree =4;
+}
